@@ -24,15 +24,15 @@ export async function getPresignedUploadUrl(
     const presignerModule = await import("@aws-sdk/s3-request-presigner");
 
     const client = new s3Module.S3Client({
-      region: process.env.AWS_REGION || "us-east-1",
+      region: process.env.REGION_AWS || "us-east-1",
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+        accessKeyId: process.env.ACCESS_KEY_ID_AWS!,
+        secretAccessKey: process.env.SECRET_ACCESS_KEY_AWS!,
       },
     });
 
     const command = new s3Module.PutObjectCommand({
-      Bucket: process.env.AWS_S3_BUCKET!,
+      Bucket: process.env.S3_BUCKET_AWS!,
       Key: key,
       ContentType: contentType,
     });
@@ -48,23 +48,23 @@ export async function getFileUrl(key: string): Promise<string> {
   if (process.env.USE_MOCK_DATA === "true") {
     return `https://mock-bucket.s3.amazonaws.com/${key}`;
   }
-  return `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+  return `https://${process.env.S3_BUCKET_AWS}.s3.${process.env.REGION_AWS}.amazonaws.com/${key}`;
 }
 
 export async function downloadFileFromS3(key: string): Promise<Buffer> {
   const s3Module = await import("@aws-sdk/client-s3");
 
   const client = new s3Module.S3Client({
-    region: process.env.AWS_REGION || "us-east-1",
+    region: process.env.REGION_AWS || "us-east-1",
     credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+      accessKeyId: process.env.ACCESS_KEY_ID_AWS!,
+      secretAccessKey: process.env.SECRET_ACCESS_KEY_AWS!,
     },
   });
 
   const response = await client.send(
     new s3Module.GetObjectCommand({
-      Bucket: process.env.AWS_S3_BUCKET!,
+      Bucket: process.env.S3_BUCKET_AWS!,
       Key: key,
     })
   );

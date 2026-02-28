@@ -133,11 +133,11 @@ export async function POST(request: Request) {
 
     if (pipelineResult.code !== 0) {
       const stderr = pipelineResult.stderr.slice(-2000);
-      const bucket = process.env.AWS_S3_BUCKET || "doonlearn-audio";
+      const bucket = process.env.S3_BUCKET_AWS || "doonlearn-audio";
       if (/NoSuchBucket|The specified bucket does not exist/i.test(stderr)) {
         return NextResponse.json({
           error: "AWS S3 bucket not found",
-          detail: `Create an S3 bucket named "${bucket}" in AWS (region ${process.env.AWS_REGION || "us-east-1"}), or set AWS_S3_BUCKET in .env to an existing bucket. The pipeline uses AWS Transcribe and needs a bucket for temporary audio uploads.`,
+          detail: `Create an S3 bucket named "${bucket}" in AWS (region ${process.env.REGION_AWS || "us-east-1"}), or set S3_BUCKET_AWS in .env to an existing bucket. The pipeline uses AWS Transcribe and needs a bucket for temporary audio uploads.`,
         }, { status: 500 });
       }
       return NextResponse.json({
