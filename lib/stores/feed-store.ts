@@ -13,6 +13,7 @@ interface FeedStoreState {
   userCourses: MockCourse[];
 
   addVideo: (video: UserVideo) => void;
+  removeVideo: (id: string) => void;
   addCourse: (course: MockCourse) => void;
   updateCourse: (id: string, data: Partial<MockCourse>) => void;
   removeCourse: (id: string) => void;
@@ -27,6 +28,9 @@ export const useFeedStore = create<FeedStoreState>()(
 
       addVideo: (video) =>
         set((s) => ({ userVideos: [...s.userVideos, video] })),
+
+      removeVideo: (id) =>
+        set((s) => ({ userVideos: s.userVideos.filter((v) => v.id !== id) })),
 
       addCourse: (course) =>
         set((s) => ({ userCourses: [...s.userCourses, course] })),

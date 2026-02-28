@@ -8,7 +8,8 @@ import VideoGrid from "@/components/profile/VideoGrid";
 import Tabs from "@/components/ui/Tabs";
 import { mockUsers, getMockCoursesByUser, getMockVideosByUser, getMockFriends } from "@/lib/mock-data";
 import { useFeedStore } from "@/lib/stores/feed-store";
-import { IoPencilOutline, IoPeopleOutline, IoChevronDownOutline, IoChevronUpOutline } from "react-icons/io5";
+import { IoPencilOutline, IoPeopleOutline, IoChevronDownOutline, IoChevronUpOutline, IoLogOutOutline } from "react-icons/io5";
+import { signOut } from "next-auth/react";
 
 const CURRENT_USER_ID = "user-1";
 
@@ -19,7 +20,8 @@ export default function ProfilePage() {
   const friends = getMockFriends(CURRENT_USER_ID);
 
   const userVideos = useFeedStore((s) => s.userVideos);
-  const allVideos = [...mockVideos, ...userVideos.filter((v) => v.userId === CURRENT_USER_ID)];
+  const removeVideo = useFeedStore((s) => s.removeVideo);
+  const allVideos = [...userVideos.filter((v) => v.userId === CURRENT_USER_ID).reverse(), ...mockVideos];
 
   const [activeTab, setActiveTab] = useState("courses");
   const [showFriends, setShowFriends] = useState(false);
@@ -27,7 +29,14 @@ export default function ProfilePage() {
   const [username, setUsername] = useState(user.username);
 
   return (
-    <div className="min-h-[100dvh] max-w-md mx-auto overflow-y-auto pb-4">
+    <div className="relative min-h-[100dvh] max-w-md mx-auto overflow-y-auto pb-4">
+      <button
+        onClick={() => signOut({ callbackUrl: "/login" })}
+        className="absolute top-4 right-4 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-dark-card border border-red-500/30 text-sm text-red-400 hover:bg-red-500/10 hover:border-red-500/50 transition-colors"
+      >
+        <IoLogOutOutline size={24} />
+      </button>
+
       <div className="flex flex-col items-center pt-10 pb-4 px-4">
         <Avatar username={username} avatarUrl={user.avatarUrl} size="xl" />
 
@@ -56,7 +65,7 @@ export default function ProfilePage() {
           className="mt-3 flex items-center gap-2 px-4 py-2 rounded-full bg-dark-card border border-dark-border text-sm text-moonDust-lavender hover:border-moonDust-blue/50 transition-colors"
         >
           <IoPeopleOutline size={16} />
-          Friends ({friends.length})
+          Search Friends ({friends.length})
           {showFriends ? <IoChevronUpOutline size={14} /> : <IoChevronDownOutline size={14} />}
         </button>
 
@@ -68,6 +77,7 @@ export default function ProfilePage() {
             />
           </div>
         )}
+
       </div>
 
       <Tabs
@@ -82,7 +92,7 @@ export default function ProfilePage() {
       {activeTab === "courses" ? (
         <CourseList courses={courses} editable />
       ) : (
-        <VideoGrid videos={allVideos} />
+        <VideoGrid videos={allVideos} onDelete={removeVideo} />
       )}
     </div>
   );
