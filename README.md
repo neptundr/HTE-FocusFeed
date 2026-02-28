@@ -71,7 +71,7 @@ Free tier: 1,000 build min/month, 5 GB CDN, 15 GB transfer, 500k SSR requests. U
 
 1. Push code to GitHub. In [AWS Amplify Console](https://console.aws.amazon.com/amplify/) → **New app** → **Host web app** → connect repo.
 2. Build: Amplify usually auto-detects Next.js. Ensure Node 20 in build image settings if needed.
-3. **Environment variables** (App settings → Environment variables): add all from `.env.example`—`DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL=http://focusfeed.study`, `NEXT_PUBLIC_APP_URL=http://focusfeed.study`, AWS keys, `AWS_S3_BUCKET`, MiniMax, Featherless, `USE_MOCK_DATA=false`.
+3. **Environment variables** (App settings → Environment variables): add all from `.env.example`—`DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL=http://focusfeed.study`, `NEXT_PUBLIC_APP_URL=http://focusfeed.study`, `ACCESS_KEY_ID_AWS`, `SECRET_ACCESS_KEY_AWS`, `REGION_AWS`, `S3_BUCKET_AWS`, MiniMax, Featherless, `USE_MOCK_DATA=false`.
 4. **Domain:** App settings → Domain management → add **focusfeed.study** (and www if you want). Add the CNAME/A record at your registrar. Amplify serves HTTP by default.
 5. Run DB migrations against production: `DATABASE_URL="postgresql://..." npx prisma db push` (or `prisma migrate deploy`).
 6. **Important:** The create-video pipeline writes reels to local disk. Amplify has a read-only filesystem, so **video generation that saves to disk won’t run on Amplify**. Either use seed/mock data and store reel URLs in DB pointing to S3, or run the pipeline on EC2 and upload reels to S3, then host only the Next.js app on Amplify.

@@ -5,9 +5,9 @@ Costs ~$0.024/min ($1.44/hr). A 2-hour lecture runs about $2.88.
 Requires: boto3, an S3 bucket, and AWS credentials.
 
 Env vars:
-    AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY  (or use `aws configure`)
-    AWS_REGION          – e.g. us-east-1
-    AWS_S3_BUCKET       – bucket name for temp audio uploads
+    ACCESS_KEY_ID_AWS / SECRET_ACCESS_KEY_AWS  (or use `aws configure` with standard names)
+    REGION_AWS          – e.g. us-east-1
+    S3_BUCKET_AWS       – bucket name for temp audio uploads
 """
 
 from __future__ import annotations
@@ -38,12 +38,12 @@ class AWSTranscriber:
                     "zh": "zh-CN", "ja": "ja-JP", "ko": "ko-KR", "ar": "ar-SA"}
             self.language = _MAP.get(self.language, f"{self.language}-{self.language.upper()}")
 
-        self._region = os.getenv("AWS_REGION", "us-east-1")
-        self._bucket = os.getenv("AWS_S3_BUCKET", "")
+        self._region = os.getenv("REGION_AWS", "us-east-1")
+        self._bucket = os.getenv("S3_BUCKET_AWS", "")
         if not self._bucket:
             raise ValueError(
-                "AWS_S3_BUCKET env var is required for AWS Transcribe.\n"
-                "Create an S3 bucket and set AWS_S3_BUCKET=<bucket-name> in .env"
+                "S3_BUCKET_AWS env var is required for AWS Transcribe.\n"
+                "Create an S3 bucket and set S3_BUCKET_AWS=<bucket-name> in .env"
             )
 
     def _get_clients(self):
@@ -52,7 +52,11 @@ class AWSTranscriber:
         except ImportError:
             raise ImportError("boto3 is required for AWS Transcribe. Install: pip install boto3")
 
-        session = boto3.Session(region_name=self._region)
+        session = boto3.Session(
+            region_name=self._region,
+            aws_access_key_id=os.getenv("ACCESS_KEY_ID_AWS"),
+            aws_secret_access_key=os.getenv("SECRET_ACCESS_KEY_AWS"),
+        )
         return session.client("s3"), session.client("transcribe")
 
     def transcribe_file(self, file_path: str | Path) -> list[TranscriptSegment]:

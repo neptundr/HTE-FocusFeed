@@ -23,10 +23,10 @@ export async function startTranscriptionJob(
     const mod = await import("@aws-sdk/client-transcribe");
 
     const client = new mod.TranscribeClient({
-      region: process.env.AWS_REGION || "us-east-1",
+      region: process.env.REGION_AWS || "us-east-1",
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+        accessKeyId: process.env.ACCESS_KEY_ID_AWS!,
+        secretAccessKey: process.env.SECRET_ACCESS_KEY_AWS!,
       },
     });
 
@@ -35,8 +35,8 @@ export async function startTranscriptionJob(
       new mod.StartTranscriptionJobCommand({
         TranscriptionJobName: jobName,
         LanguageCode: languageCode as "en-US",
-        Media: { MediaFileUri: `s3://${process.env.AWS_S3_BUCKET}/${s3Key}` },
-        OutputBucketName: process.env.AWS_S3_BUCKET,
+        Media: { MediaFileUri: `s3://${process.env.S3_BUCKET_AWS}/${s3Key}` },
+        OutputBucketName: process.env.S3_BUCKET_AWS,
       })
     );
     return jobName;
