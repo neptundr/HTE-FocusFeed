@@ -46,23 +46,45 @@ function CreateCourseForm() {
       .catch(() => {});
   }, [editId]);
 
+  const [extractError, setExtractError] = useState<string | null>(null);
+
   const handleSyllabusUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setSyllabus(file);
     setExtracting(true);
+    setExtractError(null);
 
-    setTimeout(() => {
-      setTopics((prev) => [
-        ...prev,
-        "Introduction and Overview",
-        "Core Concepts",
-        "Advanced Topics",
-        "Practical Applications",
-        "Review and Assessment",
-      ]);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const processRes = await fetch("/api/process/syllabus", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!processRes.ok) {
+        const err = await processRes.json();
+        throw new Error(err.error || "Processing failed");
+      }
+
+      const result = await processRes.json();
+
+      if (result.course_name && !name) {
+        setName(result.course_name);
+      }
+
+      const topicNames: string[] = (result.topics || []).map(
+        (t: { topic: string }) => t.topic
+      );
+      setTopics((prev) => [...prev, ...topicNames]);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to process syllabus";
+      setExtractError(msg);
+    } finally {
       setExtracting(false);
-    }, 2000);
+    }
   };
 
   const handleSave = async () => {
@@ -157,6 +179,9 @@ function CreateCourseForm() {
                   </>
                 )}
               </button>
+              {extractError && (
+                <p className="text-red-400 text-xs mt-2">{extractError}</p>
+              )}
             </div>
           )}
 
