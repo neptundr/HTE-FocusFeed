@@ -19,6 +19,12 @@ body {
 
 * {
   scrollbar-width: none;
+  -webkit-overflow-scrolling: auto;
+}
+
+html,
+body {
+  overscroll-behavior: none;
 }
 
 input,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import Avatar from "@/components/profile/Avatar";
 import FriendSearch from "@/components/profile/FriendSearch";
 import CourseList from "@/components/profile/CourseList";
@@ -171,9 +172,13 @@ export default function ProfilePage() {
                   className="flex items-center justify-between p-3 bg-dark-card rounded-xl border border-dark-border"
                 >
                   <div className="flex items-center gap-3">
-                    <Avatar username={req.user.username} size="sm" />
+                    <Link href={`/profile/${req.user.id}`}>
+                      <Avatar username={req.user.username} size="sm" />
+                    </Link>
                     <div>
-                      <span className="text-sm text-white">@{req.user.username}</span>
+                      <Link href={`/profile/${req.user.id}`} className="text-sm text-white hover:underline">
+                        @{req.user.username}
+                      </Link>
                       <p className="text-[10px] text-gray-500">wants to be friends</p>
                     </div>
                   </div>

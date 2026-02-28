@@ -68,7 +68,7 @@ export default function PlaybackSlider({ videoRef, visible }: PlaybackSliderProp
 
   return (
     <div
-      className={`absolute bottom-16 left-0 right-0 z-40 px-4 transition-opacity duration-300 ${
+      className={`absolute bottom-[3.75rem] left-0 right-0 z-40 px-4 transition-opacity duration-300 ${
         visible || isDragging ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
     >
@@ -86,10 +86,10 @@ export default function PlaybackSlider({ videoRef, visible }: PlaybackSliderProp
           />
         </div>
         <div
-          className={`absolute w-3.5 h-3.5 rounded-full bg-moonDust-blue shadow-lg shadow-moonDust-blue/30 transition-transform duration-75 -translate-y-1/2 top-1/2 ${
+          className={`absolute w-2.5 h-2.5 rounded-full bg-moonDust-blue shadow-lg shadow-moonDust-blue/30 transition-transform duration-75 -translate-y-1/2 top-1/2 ${
             isDragging ? "scale-125" : "scale-100 group-hover:scale-110"
           }`}
-          style={{ left: `calc(${progress * 100}% - 7px)` }}
+          style={{ left: `calc(${progress * 100}% - 5px)` }}
         />
       </div>
     </div>

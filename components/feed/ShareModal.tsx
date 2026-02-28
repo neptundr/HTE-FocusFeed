@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
 import Modal from "@/components/ui/Modal";
 import { IoLinkOutline, IoCheckmarkOutline, IoSendOutline } from "react-icons/io5";
 
@@ -17,16 +19,21 @@ interface Props {
 }
 
 export default function ShareModal({ open, onClose, videoId }: Props) {
+  const { data: session } = useSession();
+  const currentUserId = (session?.user as { id?: string })?.id || "";
+
   const [copied, setCopied] = useState(false);
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [sent, setSent] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!open) return;
-    fetch("/api/friends?userId=user-1")
+    if (!open || !currentUserId) return;
+    setSent(new Set());
+    fetch(`/api/friends?userId=${currentUserId}`)
       .then((r) => r.json())
       .then((data) => setFriends(data))
       .catch(() => {});
-  }, [open]);
+  }, [open, currentUserId]);
 
   const copyLink = () => {
     const url = `${window.location.origin}/feed?videoId=${videoId}`;
@@ -37,12 +44,12 @@ export default function ShareModal({ open, onClose, videoId }: Props) {
   };
 
   const sendToFriend = async (friendId: string) => {
+    setSent((prev) => new Set(prev).add(friendId));
     await fetch(`/api/messages/${friendId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: "user-1", sharedVideoId: videoId }),
+      body: JSON.stringify({ userId: currentUserId, sharedVideoId: videoId }),
     }).catch(() => {});
-    onClose();
   };
 
   return (
@@ -59,24 +66,53 @@ export default function ShareModal({ open, onClose, videoId }: Props) {
         {friends.length > 0 && (
           <div>
             <p className="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wider">Send to friend</p>
-            <div className="space-y-2">
-              {friends.map((friend) => (
-                <button
-                  key={friend.id}
-                  onClick={() => sendToFriend(friend.id)}
-                  className="w-full p-3 rounded-xl border border-dark-border bg-dark text-sm text-white hover:border-moonDust-blue/50 transition-colors flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-moonDust-sky/30 flex items-center justify-center text-xs font-bold text-moonDust-sky">
-                      {friend.username[0].toUpperCase()}
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {friends.map((friend) => {
+                const wasSent = sent.has(friend.id);
+                return (
+                  <button
+                    key={friend.id}
+                    onClick={() => !wasSent && sendToFriend(friend.id)}
+                    disabled={wasSent}
+                    className="w-full p-3 rounded-xl border border-dark-border bg-dark text-sm text-white hover:border-moonDust-blue/50 transition-colors flex items-center justify-between disabled:opacity-60"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Link
+                        href={`/profile/${friend.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="shrink-0"
+                      >
+                        {friend.avatarUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={friend.avatarUrl} alt={friend.username} className="w-8 h-8 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-moonDust-sky/30 flex items-center justify-center text-xs font-bold text-moonDust-sky">
+                            {friend.username[0].toUpperCase()}
+                          </div>
+                        )}
+                      </Link>
+                      <Link
+                        href={`/profile/${friend.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="hover:text-moonDust-blue transition-colors"
+                      >
+                        @{friend.username}
+                      </Link>
                     </div>
-                    <span>@{friend.username}</span>
-                  </div>
-                  <IoSendOutline size={16} className="text-moonDust-blue" />
-                </button>
-              ))}
+                    {wasSent ? (
+                      <IoCheckmarkOutline size={16} className="text-green-400" />
+                    ) : (
+                      <IoSendOutline size={16} className="text-moonDust-blue" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
+        )}
+
+        {friends.length === 0 && (
+          <p className="text-xs text-gray-400 text-center py-2">Add friends to share videos with them</p>
         )}
       </div>
     </Modal>

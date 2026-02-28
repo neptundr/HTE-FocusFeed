@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Avatar from "./Avatar";
 import { IoAddOutline, IoCheckmarkOutline } from "react-icons/io5";
@@ -66,8 +67,12 @@ export default function FriendSearch({ currentUserId, friendIds }: FriendSearchP
             className="flex items-center justify-between p-3 bg-dark-card rounded-xl border border-dark-border"
           >
             <div className="flex items-center gap-3">
-              <Avatar username={user.username} size="sm" />
-              <span className="text-sm text-white">@{user.username}</span>
+              <Link href={`/profile/${user.id}`}>
+                <Avatar username={user.username} size="sm" />
+              </Link>
+              <Link href={`/profile/${user.id}`} className="text-sm text-white hover:underline">
+                @{user.username}
+              </Link>
             </div>
             {isFriend || justAdded ? (
               <span className="text-moonDust-blue text-xs flex items-center gap-1">

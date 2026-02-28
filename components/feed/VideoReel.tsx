@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState, useEffect, useCallback } from "react";
-import { IoHeart, IoHeartOutline, IoThumbsDownOutline, IoChatbubbleOutline, IoShareOutline } from "react-icons/io5";
+import Link from "next/link";
+import { IoThumbsUp, IoThumbsUpOutline, IoThumbsDownOutline, IoChatbubbleOutline, IoShareSocialOutline } from "react-icons/io5";
 import PlaybackSlider from "./PlaybackSlider";
 import type { MockVideo, MockUser, MockCourse } from "@/lib/mock-data";
 
@@ -54,16 +55,19 @@ export default function VideoReel({ video, isActive, onDislike, onComment, onSha
   const handleMouseEnter = () => setSliderVisible(true);
   const handleMouseLeave = () => setSliderVisible(false);
 
+  const iconShadow = "drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]";
+  const textShadow = "[text-shadow:0_1px_4px_rgba(0,0,0,0.9)]";
+
   return (
     <div
-      className="relative h-[100dvh] w-full snap-start bg-black flex items-center justify-center"
+      className="relative h-[100dvh] w-full snap-start snap-always bg-black"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <video
         ref={videoRef}
         src={video.videoUrl}
-        className="h-full w-full object-cover"
+        className="h-full w-full object-cover object-top"
         loop
         muted
         playsInline
@@ -82,17 +86,18 @@ export default function VideoReel({ video, isActive, onDislike, onComment, onSha
         </div>
       )}
 
-      <div className="absolute right-3 bottom-32 flex flex-col items-center gap-5">
+      {/* Icons — above bottom nav (56px) */}
+      <div className={`absolute right-3 bottom-[9.5rem] flex flex-col items-center gap-5 ${iconShadow}`}>
         <button
           onClick={() => setLiked(!liked)}
           className="flex flex-col items-center gap-1"
         >
           {liked ? (
-            <IoHeart size={28} className="text-red-500" />
+            <IoThumbsUp size={28} className="text-moonDust-blue" />
           ) : (
-            <IoHeartOutline size={28} className="text-white" />
+            <IoThumbsUpOutline size={28} className="text-white" />
           )}
-          <span className="text-xs text-white">{video.likesCount + (liked ? 1 : 0)}</span>
+          <span className={`text-xs text-white ${textShadow}`}>{video.likesCount + (liked ? 1 : 0)}</span>
         </button>
 
         <button onClick={onDislike} className="flex flex-col items-center gap-1">
@@ -101,20 +106,23 @@ export default function VideoReel({ video, isActive, onDislike, onComment, onSha
 
         <button onClick={onComment} className="flex flex-col items-center gap-1">
           <IoChatbubbleOutline size={26} className="text-white" />
-          <span className="text-xs text-white">{video.commentsCount}</span>
+          <span className={`text-xs text-white ${textShadow}`}>{video.commentsCount}</span>
         </button>
 
         <button onClick={onShare} className="flex flex-col items-center gap-1">
-          <IoShareOutline size={26} className="text-white" />
+          <IoShareSocialOutline size={26} className="text-white" />
         </button>
       </div>
 
-      <div className="absolute bottom-20 left-4 right-16">
-        <p className="text-white font-semibold text-sm drop-shadow-lg">@{video.user.username}</p>
-        <p className="text-white text-sm mt-1 drop-shadow-lg">{video.title}</p>
-        <p className="text-moonDust-lavender/80 text-xs mt-1 drop-shadow-lg">{video.course.name}</p>
+      {/* Title & username — above slider, above bottom nav */}
+      <div className={`absolute bottom-[5.5rem] left-4 right-16 ${textShadow}`}>
+        <Link href={`/profile/${video.userId}`} className="text-white font-semibold text-sm hover:underline">
+          @{video.user.username}
+        </Link>
+        <p className="text-white text-sm mt-1">{video.title}</p>
       </div>
 
+      {/* Slider — just above bottom nav */}
       <PlaybackSlider videoRef={videoRef} visible={sliderVisible} />
     </div>
   );

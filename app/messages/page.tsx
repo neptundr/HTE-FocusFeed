@@ -34,6 +34,7 @@ export default function MessagesPage() {
     const hours = Math.floor(diff / (1000 * 60 * 60));
     if (hours > 0) return `${hours}h`;
     const mins = Math.floor(diff / (1000 * 60));
+    if (mins <= 0) return "now";
     return `${mins}m`;
   };
 

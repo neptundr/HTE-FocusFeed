@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
 import Modal from "@/components/ui/Modal";
-import { IoSendOutline, IoHeartOutline } from "react-icons/io5";
+import { IoSendOutline, IoHeart, IoHeartOutline } from "react-icons/io5";
 
 interface Comment {
   id: string;
   text: string;
   likesCount: number;
-  user: { username: string };
+  user: { id: string; username: string; avatarUrl: string | null };
 }
 
 interface Props {
@@ -18,11 +20,17 @@ interface Props {
 }
 
 export default function CommentsPanel({ open, onClose, videoId }: Props) {
+  const { data: session } = useSession();
+  const currentUserId = (session?.user as { id?: string })?.id || "";
+  const currentUsername = session?.user?.name || "you";
+
   const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState<Comment[]>([]);
+  const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!open || !videoId) return;
+    setLikedComments(new Set());
     fetch(`/api/comments?videoId=${videoId}`)
       .then((r) => r.json())
       .then((data) => setComments(data))
@@ -30,18 +38,37 @@ export default function CommentsPanel({ open, onClose, videoId }: Props) {
   }, [open, videoId]);
 
   const handleSend = async () => {
-    if (!newComment.trim() || !videoId) return;
+    if (!newComment.trim() || !videoId || !currentUserId) return;
     try {
       const res = await fetch("/api/comments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: "user-1", videoId, text: newComment.trim() }),
+        body: JSON.stringify({ userId: currentUserId, videoId, text: newComment.trim() }),
       });
       const saved = await res.json();
-      setComments((prev) => [...prev, { ...saved, user: saved.user || { username: "you" } }]);
+      setComments((prev) => [
+        ...prev,
+        {
+          ...saved,
+          likesCount: saved.likesCount || 0,
+          user: saved.user || { id: currentUserId, username: currentUsername, avatarUrl: null },
+        },
+      ]);
     } catch {}
     setNewComment("");
   };
+
+  const toggleLike = useCallback((commentId: string) => {
+    setLikedComments((prev) => {
+      const next = new Set(prev);
+      if (next.has(commentId)) {
+        next.delete(commentId);
+      } else {
+        next.add(commentId);
+      }
+      return next;
+    });
+  }, []);
 
   return (
     <Modal open={open} onClose={onClose} title={`Comments (${comments.length})`} position="bottom">
@@ -50,23 +77,45 @@ export default function CommentsPanel({ open, onClose, videoId }: Props) {
           {comments.length === 0 ? (
             <p className="text-gray-400 text-sm text-center py-8">No comments yet. Be the first!</p>
           ) : (
-            comments.map((c) => (
-              <div key={c.id} className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-moonDust-purple/30 flex items-center justify-center text-xs font-bold text-moonDust-purple shrink-0">
-                  {c.user.username[0].toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-moonDust-lavender">@{c.user.username}</span>
+            comments.map((c) => {
+              const isLiked = likedComments.has(c.id);
+              const displayName = c.user?.username || "unknown";
+              const initial = displayName[0]?.toUpperCase() || "?";
+
+              return (
+                <div key={c.id} className="flex gap-3">
+                  <Link href={`/profile/${c.user?.id || ""}`} className="shrink-0">
+                    {c.user?.avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={c.user.avatarUrl}
+                        alt={displayName}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-moonDust-purple/30 flex items-center justify-center text-xs font-bold text-moonDust-purple">
+                        {initial}
+                      </div>
+                    )}
+                  </Link>
+                  <div className="flex-1 min-w-0">
+                    <Link href={`/profile/${c.user?.id || ""}`} className="text-xs font-semibold text-moonDust-lavender hover:underline">
+                      @{displayName}
+                    </Link>
+                    <p className="text-sm text-white/90 mt-0.5">{c.text}</p>
+                    <button
+                      onClick={() => toggleLike(c.id)}
+                      className={`flex items-center gap-1 mt-1 text-xs transition-colors ${
+                        isLiked ? "text-red-500" : "text-gray-400 hover:text-red-400"
+                      }`}
+                    >
+                      {isLiked ? <IoHeart size={12} /> : <IoHeartOutline size={12} />}
+                      <span>{c.likesCount + (isLiked ? 1 : 0)}</span>
+                    </button>
                   </div>
-                  <p className="text-sm text-white/90 mt-0.5">{c.text}</p>
-                  <button className="flex items-center gap-1 mt-1 text-gray-400 hover:text-moonDust-blue text-xs">
-                    <IoHeartOutline size={12} />
-                    <span>{c.likesCount}</span>
-                  </button>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 

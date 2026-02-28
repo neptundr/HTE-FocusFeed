@@ -26,7 +26,8 @@ export async function POST(request: Request) {
     const pdfBuffer = Buffer.from(arrayBuffer);
 
     // Import from lib/ directly to avoid the test-file loader in index.js
-    const pdfParse = (await import("pdf-parse/lib/pdf-parse.js")).default;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const pdfParse = require("pdf-parse/lib/pdf-parse.js");
     const pdfData = await pdfParse(pdfBuffer);
     const pdfText = pdfData.text;
 

@@ -94,8 +94,12 @@ export default function ChatPage() {
           <IoArrowBack size={22} />
         </Link>
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <Avatar username={friend.username} size="sm" />
-          <span className="text-sm font-semibold text-white truncate">@{friend.username}</span>
+          <Link href={`/profile/${friend.id}`} className="shrink-0">
+            <Avatar username={friend.username} size="sm" />
+          </Link>
+          <Link href={`/profile/${friend.id}`} className="text-sm font-semibold text-white truncate hover:underline">
+            @{friend.username}
+          </Link>
         </div>
         <Link
           href={`/profile/${friend.id}`}
